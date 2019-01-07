@@ -12,7 +12,10 @@ public class ChangeCamera : MonoBehaviour
     {
         top.enabled = !top.enabled;
         top.GetComponent<ResetChipRotation>().enabled = !top.GetComponent<ResetChipRotation>().enabled;
+        top.GetComponent<RayCaster>().enabled = !top.GetComponent<RayCaster>().enabled;
+
         main.GetComponent<FingerRotator>().enabled = !main.GetComponent<FingerRotator>().enabled;
+        main.GetComponent<RayCaster>().enabled = !main.GetComponent<RayCaster>().enabled;
 
         Text buttonText = GetComponentInChildren<Text>();
         if (buttonText.text.EndsWith("3D"))

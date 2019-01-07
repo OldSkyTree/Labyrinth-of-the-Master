@@ -1041,6 +1041,7 @@ GameObject:
   - component: {fileID: 534669904}
   - component: {fileID: 534669903}
   - component: {fileID: 534669906}
+  - component: {fileID: 534669907}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1127,6 +1128,18 @@ MonoBehaviour:
   rotationPoint: {fileID: 294113366}
   speed: 5
   rotateChip: 1
+--- !u!114 &534669907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534669902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6cea6e71644b1d4b94a41f74d6267ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &611069047
 GameObject:
   m_ObjectHideFlags: 0
@@ -2286,6 +2299,7 @@ GameObject:
   - component: {fileID: 1371715605}
   - component: {fileID: 1371715606}
   - component: {fileID: 1371715608}
+  - component: {fileID: 1371715609}
   m_Layer: 0
   m_Name: Top Camera
   m_TagString: Untagged
@@ -2367,6 +2381,18 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b67f08a1ba1c2a947a2b635b8b9e927e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1371715609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371715604}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6cea6e71644b1d4b94a41f74d6267ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1534953890
