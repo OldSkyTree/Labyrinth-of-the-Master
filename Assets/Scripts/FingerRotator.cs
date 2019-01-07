@@ -18,15 +18,13 @@ public class FingerRotator : MonoBehaviour
             Vector3 lookPos = rotationPoint.position - transform.position;
             lookPos.y = 0;
             Quaternion rotate = Quaternion.LookRotation(lookPos);
-
-            //var enumerator = GetComponent<GameController>().GetChips().Values.GetEnumerator();
+            
             var chips = FindObjectsOfType<GameObject>();
             for (int i = 0; i < chips.Length; i++)
             {
                 if (chips[i].name.Contains("Chip"))
                 {
                     chips[i].transform.rotation = rotate;
-                    chips[i].transform.Rotate(Vector3.up, 180);
                 }
             }
         }
