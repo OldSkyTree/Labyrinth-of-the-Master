@@ -11,6 +11,7 @@ ModelImporter:
     100010: Table
     100012: Plane
     100014: Card
+    100016: Glue_Cell
     400000: Cell
     400002: Chip
     400004: Field
@@ -19,6 +20,7 @@ ModelImporter:
     400010: Table
     400012: Plane
     400014: Card
+    400016: Glue_Cell
     2100000: unnamed
     2300000: Cell
     2300002: Chip
@@ -27,6 +29,7 @@ ModelImporter:
     2300008: Table
     2300010: Plane
     2300012: Card
+    2300014: Glue_Cell
     3300000: Cell
     3300002: Chip
     3300004: Field
@@ -34,6 +37,7 @@ ModelImporter:
     3300008: Table
     3300010: Plane
     3300012: Card
+    3300014: Glue_Cell
     4300000: Field
     4300002: Figure
     4300004: Chip
@@ -41,6 +45,7 @@ ModelImporter:
     4300008: Table
     4300010: Plane
     4300012: Card
+    4300014: Glue_Cell
     7400000: Default Take
     9500000: //RootNode
   externalObjects: {}

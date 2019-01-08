@@ -28,7 +28,6 @@ public class RayCaster : MonoBehaviour
         GameObject rayReceiver = hit.collider.gameObject;
         int i = ZToI(rayReceiver.transform.position.z);
         int j = XToJ(rayReceiver.transform.position.x);
-        Debug.Log("This cell in array cells[" + i + ", " + j + "]");
     }
 
     int ZToI(float z)

@@ -8,9 +8,9 @@ public class GameController : MonoBehaviour
     public GameObject figurePrefab;
     public GameObject chipPrefab;
     
-    private Dictionary<int, GameObject> playersContainer;
+    private GameObject[] players = new GameObject[4];
     private Cell[,] cells = new Cell[7, 7];
-    private Dictionary<int, GameObject> chipsContainer;
+    private Chip[] chips = new Chip[21];
 
     private bool isInitialized = false;
 
@@ -23,15 +23,13 @@ public class GameController : MonoBehaviour
     {
         if (isInitialized)
             return;
-        playersContainer = new Dictionary<int, GameObject>
+        for (int i = 0; i < 4; i++)
         {
-            { 0, CreateFigure(0, CreateColorFromIntRGB(204, 6, 5)) },
-            { 1, CreateFigure(1, CreateColorFromIntRGB(6, 57, 113)) },
-            { 2, CreateFigure(2, CreateColorFromIntRGB(225, 204, 79)) },
-            { 3, CreateFigure(3, CreateColorFromIntRGB(250, 244, 227)) }
-        };
+            players[i] = CreateFigure(i);
+            players[i].name = "Figure " + i;
+        }
         FillField();
-        chipsContainer = CreateChips();
+        CreateChips();
         isInitialized = true;
     }
 
@@ -40,34 +38,41 @@ public class GameController : MonoBehaviour
         return new Color(r / 255f, g / 255f, b / 255f);
     }
 
-    GameObject CreateFigure(int playerId, Color color)
+    GameObject CreateFigure(int playerId)
     {
         Vector3 figurePosition = new Vector3();
+        Color figureColor = new Color();
      
         switch (playerId)
         {
             case 0:
-                figurePosition = new Vector3(-2, 0.3f, 2);
+                figurePosition = new Vector3(-2.05f, 0.2f, 2.05f);
+                figureColor = CreateColorFromIntRGB(204, 6, 5);
                 break;
             case 1:
-                figurePosition = new Vector3(2, 0.3f, 2);
+                figurePosition = new Vector3(2.05f, 0.2f, 2.05f);
+                figureColor = CreateColorFromIntRGB(6, 57, 113);
                 break;
             case 2:
-                figurePosition = new Vector3(2, 0.3f, -2);
+                figurePosition = new Vector3(2.05f, 0.2f, -2.05f);
+                figureColor = CreateColorFromIntRGB(225, 204, 79);
                 break;
             case 3:
-                figurePosition = new Vector3(-2, 0.3f, -2);
+                figurePosition = new Vector3(-2.05f, 0.2f, -2.05f);
+                figureColor = CreateColorFromIntRGB(250, 244, 227);
                 break;
         }
         Quaternion figureRotation = Quaternion.identity;
         GameObject figure = Instantiate<GameObject>(figurePrefab, figurePosition, figureRotation);
-        figure.GetComponent<MeshRenderer>().material.color = color;
+        figure.GetComponent<MeshRenderer>().material.color = figureColor;
         return figure;
     }
 
     void FillField()
     {
         Vector3 cellPosition = new Vector3();
+
+        CreateBasicCell();
         
         for (int i = 0; i < 7; i++)
         {
@@ -81,15 +86,94 @@ public class GameController : MonoBehaviour
                 int cellType = Random.Range(0, 3);
                 cells[i, j] = CreateCell(cellType);
                 cells[i, j].GetGameObject().transform.position = cellPosition;
-                cells[i, j].GetGameObject().name = "Cell" + (i * 7 + j);
+            }
+        }
+        for (int i = 0; i < 7; i++)
+        {
+            for (int j = 0; j < 7; j++)
+            {
+                cells[i, j].GetGameObject().name = "Cell " + (i * 7 + j);
             }
         }
     }
+    void CreateBasicCell()
+    {
+        Vector3 cellPosition = new Vector3();
+
+        int turn;
+
+        for (int i = 0; i < 7; i += 6)
+        {
+            turn = 0;
+            for (int j = 0; j < 7; j += 6)
+            {
+                if (i == 6)
+                    turn--;
+                float z = (3 - i) * 2.05f;
+                float x = (j - 3) * 2.05f;
+                cellPosition = new Vector3(x, 0.1f, z);
+                cells[i, j] = CreateCell(0, turn);
+                cells[i, j].GetGameObject().transform.position = cellPosition;
+                if (i == 0)
+                    turn++;
+            }
+        }
+
+        for (int i = 2; i < 5; i += 2)
+        {
+            turn = -1;
+            for (int j = 0; j < 7; j += 6)
+            {
+                float z = (3 - i) * 2.05f;
+                float x = (j - 3) * 2.05f;
+                cellPosition = new Vector3(x, 0.1f, z);
+                cells[i, j] = CreateCell(1, turn);
+                cells[i, j].GetGameObject().transform.position = cellPosition;
+                turn = 1;
+            }
+        }
+
+        turn = 0;
+        for (int i = 0; i < 7; i += 6)
+        {
+            for (int j = 2; j < 5; j += 2)
+            {
+                float z = (3 - i) * 2.05f;
+                float x = (j - 3) * 2.05f;
+                cellPosition = new Vector3(x, 0.1f, z);
+                cells[i, j] = CreateCell(1, turn);
+                cells[i, j].GetGameObject().transform.position = cellPosition;
+            }
+            turn = 2;
+        }
+
+        for (int i = 2; i < 5; i += 2)
+        {
+            turn = -1;
+            for (int j = 2; j < 5; j += 2)
+            {
+                if (i == 4)
+                    turn--;
+                float z = (3 - i) * 2.05f;
+                float x = (j - 3) * 2.05f;
+                cellPosition = new Vector3(x, 0.1f, z);
+                cells[i, j] = CreateCell(1, turn);
+                cells[i, j].GetGameObject().transform.position = cellPosition;
+                if (i == 2)
+                    turn++;
+            }
+        }
+
+    }
     Cell CreateCell(int type)
     {
-        Vector3 cellPosition = Vector3.zero;
         int randomTurnCount = Random.Range(0, 4);
-        Quaternion cellRotation = Quaternion.Euler(0, randomTurnCount * 90, 0);
+        return CreateCell(type, randomTurnCount);
+    }
+    Cell CreateCell(int type, int turnNumber)
+    {
+        Vector3 cellPosition = Vector3.zero;
+        Quaternion cellRotation = Quaternion.Euler(0, turnNumber * 90, 0);
         GameObject cell = Instantiate(cellPrefab, cellPosition, cellRotation);
 
         Vector2[] array = cell.GetComponent<MeshFilter>().mesh.uv;
@@ -99,15 +183,16 @@ public class GameController : MonoBehaviour
         }
         cell.GetComponent<MeshFilter>().mesh.uv = array;
 
-        return new Cell(type, cell, randomTurnCount);
+        return new Cell(type, cell, turnNumber);
     }
 
-    Dictionary<int, GameObject> CreateChips()
+    void CreateChips()
     {
-        Dictionary<int, GameObject> dictionary = new Dictionary<int, GameObject>();
+        List<int> idHolder = new List<int>();
+        
         Vector3 chipPosition = new Vector3();
-        GameObject chip;
         int chipId = 0;
+        int arrayCount = 0;
         for (float x = -4.1f; x <= 4.1f; x += 2.05f)
         {
             for (float z = 4.1f; z >= -4.1f; z -= 2.05f)
@@ -119,16 +204,16 @@ public class GameController : MonoBehaviour
                 {
                     chipId = Random.Range(0, 21);
                 }
-                while (dictionary.ContainsKey(chipId));
-                chip = CreateChip(chipId);
-                chip.name = "Chip " + (chipId + 1);
-                chip.transform.position = chipPosition;
-                dictionary.Add(chipId, chip);
+                while (idHolder.Contains(chipId));
+                idHolder.Add(chipId);
+                chips[arrayCount] = CreateChip(chipId);
+                chips[arrayCount].GetGameObject().name = "Chip " + (chipId + 1);
+                chips[arrayCount].GetGameObject().transform.position = chipPosition;
+                arrayCount++;
             }
         }
-        return dictionary;
     }
-    GameObject CreateChip(int chipId)
+    Chip CreateChip(int chipId)
     {
         float chipLength = 401;
         int textureLength = 2048;
@@ -147,14 +232,9 @@ public class GameController : MonoBehaviour
             array[i].y -= (float)chipLength / textureLength * x;
         }
         chip.GetComponent<MeshFilter>().mesh.uv = array;
-        return chip;
+        return new Chip(chipId, chip);
     }
-
-    public Dictionary<int, GameObject> GetChips()
-    {
-        return chipsContainer;
-    }
-
+    
     public void ExitGame()
     {
         Application.Quit();
@@ -180,7 +260,7 @@ class Cell
                 up = 0; right = 1; down = 1; left = 1;
                 break;
             case 2:
-                up = 0; right = 1; down = 0; left = 0;
+                up = 0; right = 1; down = 0; left = 1;
                 break;
         }
         this.gameObject = gameObject;
@@ -247,6 +327,27 @@ class Cell
         {
             left = (value > 1 || value < 0) ? 0 : value;
         }
+    }
+    public GameObject GetGameObject()
+    {
+        return gameObject;
+    }
+}
+
+class Chip
+{
+    private int cost;
+    private GameObject gameObject;
+
+    public Chip(int cost, GameObject gameObject)
+    {
+        this.cost = cost;
+        this.gameObject = gameObject;
+    }
+
+    public int Cost
+    {
+        get { return cost; }
     }
     public GameObject GetGameObject()
     {
