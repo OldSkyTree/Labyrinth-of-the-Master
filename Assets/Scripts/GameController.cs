@@ -7,26 +7,58 @@ public class GameController : MonoBehaviour
     public GameObject cellPrefab;
     public GameObject figurePrefab;
     public GameObject chipPrefab;
-    
-    private GameObject[] players = new GameObject[4];
+
+    private List<Player> players;
     private Cell[,] cells = new Cell[7, 7];
-    private Chip[] chips = new Chip[21];
+    private List<Chip> chips;
 
     private bool isInitialized = false;
 
+    private GameMode mode;
+
+    public enum GameMode
+    {
+        NotStarted,
+        Started,
+        LineChoose,
+        RotationChoose,
+        FigureMoving,
+        Ended
+    }
+
     void Start()
     {
+        players = new List<Player>();
+        chips = new List<Chip>();
         InitializeField();
+        mode = GameMode.FigureMoving;
     }
-    
+
+    public static GameController GetGameController()
+    {
+        return GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
+    }
+
+    public GameMode GetGameMode()
+    {
+        return mode;
+    }
+    public void SetGameMode(int gameMode)
+    {
+        mode = (GameMode)gameMode;
+    }
+    public void IncreaseGameMode()
+    {
+        mode++;
+    }
+
     public void InitializeField()
     {
         if (isInitialized)
             return;
         for (int i = 0; i < 4; i++)
         {
-            players[i] = CreateFigure(i);
-            players[i].name = "Figure " + i;
+            players.Add(CreateFigure(i));
         }
         FillField();
         CreateChips();
@@ -38,11 +70,11 @@ public class GameController : MonoBehaviour
         return new Color(r / 255f, g / 255f, b / 255f);
     }
 
-    GameObject CreateFigure(int playerId)
+    Player CreateFigure(int playerId)
     {
         Vector3 figurePosition = new Vector3();
         Color figureColor = new Color();
-     
+
         switch (playerId)
         {
             case 0:
@@ -65,7 +97,15 @@ public class GameController : MonoBehaviour
         Quaternion figureRotation = Quaternion.identity;
         GameObject figure = Instantiate<GameObject>(figurePrefab, figurePosition, figureRotation);
         figure.GetComponent<MeshRenderer>().material.color = figureColor;
-        return figure;
+        figure.name = "Player " + playerId;
+        return new Player(playerId, figure);
+    }
+
+    public Player GetCurrentPlayer()
+    {
+        if (players.Count > 0)
+            return players[0];
+        return null;
     }
 
     void FillField()
@@ -73,7 +113,7 @@ public class GameController : MonoBehaviour
         Vector3 cellPosition = new Vector3();
 
         CreateBasicCell();
-        
+
         for (int i = 0; i < 7; i++)
         {
             for (int j = 0; j < 7; j++)
@@ -186,10 +226,15 @@ public class GameController : MonoBehaviour
         return new Cell(type, cell, turnNumber);
     }
 
+    public Cell GetCell(int i, int j)
+    {
+        return cells[i, j];
+    }
+
     void CreateChips()
     {
         List<int> idHolder = new List<int>();
-        
+
         Vector3 chipPosition = new Vector3();
         int chipId = 0;
         int arrayCount = 0;
@@ -206,7 +251,7 @@ public class GameController : MonoBehaviour
                 }
                 while (idHolder.Contains(chipId));
                 idHolder.Add(chipId);
-                chips[arrayCount] = CreateChip(chipId);
+                chips.Add(CreateChip(chipId));
                 chips[arrayCount].GetGameObject().name = "Chip " + (chipId + 1);
                 chips[arrayCount].GetGameObject().transform.position = chipPosition;
                 arrayCount++;
@@ -234,19 +279,146 @@ public class GameController : MonoBehaviour
         chip.GetComponent<MeshFilter>().mesh.uv = array;
         return new Chip(chipId, chip);
     }
-    
+
+    public bool IsMoveAvailable(Vector2Int From, Vector2Int To)
+    {
+        if (From.x < 0 || From.y < 0 || To.x < 0 || To.y < 0 || From.x > 6 || From.y > 6 || To.x > 6 || To.y > 6)
+            return false;
+        
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+
+        List<Cell> visitedCells = new List<Cell>();
+        
+        queue.Enqueue(From);
+
+        while (queue.Count != 0)
+        {
+            Vector2Int current = queue.Dequeue();
+
+            visitedCells.Add(cells[current.x, current.y]);
+            
+            //---------------------------------------------UP
+            if (cells[current.x, current.y].Up && current.x > 0 && cells[current.x - 1, current.y].Down)
+            {
+                Vector2Int nextCell = current + Vector2Int.left;
+                if (nextCell == To)
+                    return true;
+                else 
+                if (!visitedCells.Contains(cells[nextCell.x, nextCell.y]))
+                    queue.Enqueue(nextCell);
+            }
+            //---------------------------------------------RIGHT
+            if (cells[current.x, current.y].Right && current.y < 6 && cells[current.x, current.y + 1].Left)
+            {
+                Vector2Int nextCell = current + Vector2Int.up;
+                if (nextCell == To)
+                    return true;
+                else
+                if (!visitedCells.Contains(cells[nextCell.x, nextCell.y]))
+                    queue.Enqueue(nextCell);
+            }
+            //---------------------------------------------DOWN
+            if (cells[current.x, current.y].Down && current.x < 6 && cells[current.x + 1, current.y].Up)
+            {
+                Vector2Int nextCell = current + Vector2Int.right;
+                if (nextCell == To)
+                    return true;
+                else
+                if (!visitedCells.Contains(cells[nextCell.x, nextCell.y]))
+                    queue.Enqueue(nextCell);
+            }
+            //---------------------------------------------LEFT
+            if (cells[current.x, current.y].Left && current.y > 0 && cells[current.x, current.y - 1].Right)
+            {
+                Vector2Int nextCell = current + Vector2Int.down;
+                if (nextCell == To)
+                    return true;
+                else
+                if (!visitedCells.Contains(cells[nextCell.x, nextCell.y]))
+                    queue.Enqueue(nextCell);
+            }
+        }
+        return false;
+    }
+
     public void ExitGame()
     {
         Application.Quit();
     }
 }
 
-class Cell
+public class Player
 {
-    private int up;
-    private int right;
-    private int down;
-    private int left;
+    private int id;
+    private string name;
+    private GameObject gameObject;
+    private List<Chip> collectedChips;
+    private int wandCount;
+
+    private List<int> bonusChips;
+
+    private const int WAND_COST = 3;
+    private const int BONUS_CHIP_COST = 20;
+
+    public Player(int playerId, GameObject gameObject) : 
+        this(playerId, gameObject, "Player " + (playerId + 1))
+    {
+    }
+    public Player(int playerId, GameObject gameObject, string playerName) : 
+        this(playerId, gameObject, playerName, new List<int> { -1, -1, -1 })
+    {
+    }
+    public Player(int playerId, GameObject gameObject, string playerName, List<int> bonus)
+    {
+        id = playerId;
+        this.gameObject = gameObject;
+        collectedChips = new List<Chip>();
+        name = playerName;
+        wandCount = 3;
+        bonusChips = bonus;
+    }
+
+    public void CollectChip(Chip chip)
+    {
+        collectedChips.Add(chip);
+    }
+
+    public int GetId()
+    {
+        return id;
+    }
+    public string GetName()
+    {
+        return name;
+    }
+    public GameObject GetGameObject()
+    {
+        return gameObject;
+    }
+    public int GetScore()
+    {
+        int score = 0;
+        foreach (Chip chip in collectedChips)
+        {
+            score += chip.Cost;
+            if (bonusChips.Contains(chip.Cost))
+                score += BONUS_CHIP_COST;
+        }
+        score += wandCount * WAND_COST;
+        return score;
+    }
+    public Vector3 GetPosition
+    {
+        get { return gameObject.transform.position; }
+    }
+}
+
+public class Cell
+{
+    private bool up;
+    private bool right;
+    private bool down;
+    private bool left;
     private GameObject gameObject;
 
     public Cell(int type, GameObject gameObject)
@@ -254,13 +426,13 @@ class Cell
         switch (type)
         {
             case 0:
-                up = 0; right = 1; down = 1; left = 0;
+                up = false; right = true; down = true; left = false;
                 break;
             case 1:
-                up = 0; right = 1; down = 1; left = 1;
+                up = false; right = true; down = true; left = true;
                 break;
             case 2:
-                up = 0; right = 1; down = 0; left = 1;
+                up = false; right = true; down = false; left = true;
                 break;
         }
         this.gameObject = gameObject;
@@ -270,14 +442,14 @@ class Cell
         if (turnCount > 0)
             RotateRight(turnCount);
         else if (turnCount < 0)
-            RotateLeft(turnCount);
+            RotateLeft(-turnCount);
     }
 
     void RotateRight(int turnNumber)
     {
         for (int i = 0; i < turnNumber; i++)
         {
-            int upTemp = up;
+            bool upTemp = up;
             up = left;
             left = down;
             down = right;
@@ -288,7 +460,7 @@ class Cell
     {
         for (int i = 0; i < turnNumber; i++)
         {
-            int upTemp = up;
+            bool upTemp = up;
             up = right;
             right = down;
             down = left;
@@ -296,37 +468,25 @@ class Cell
         }
     }
 
-    public int Up
+    public bool Up
     {
         get { return up; }
-        private set
-        {
-            up = (value > 1 || value < 0) ? 0 : value;
-        }
+        private set { up = value; }
     }
-    public int Right
+    public bool Right
     {
         get { return right; }
-        private set
-        {
-            right = (value > 1 || value < 0) ? 0 : value;
-        }
+        private set { right = value; }
     }
-    public int Down
+    public bool Down
     {
         get { return down; }
-        private set
-        {
-            down = (value > 1 || value < 0) ? 0 : value;
-        }
+        private set { down = value;}
     }
-    public int Left
+    public bool Left
     {
         get { return left; }
-        private set
-        {
-            left = (value > 1 || value < 0) ? 0 : value;
-        }
+        private set { left = value; }
     }
     public GameObject GetGameObject()
     {
@@ -334,7 +494,7 @@ class Cell
     }
 }
 
-class Chip
+public class Chip
 {
     private int cost;
     private GameObject gameObject;

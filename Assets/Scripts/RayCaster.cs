@@ -6,9 +6,12 @@ public class RayCaster : MonoBehaviour
 {
     private Camera currentCamera;
 
+    private GameController gameController;
+    
     void Start()
     {
         currentCamera = GetComponent<Camera>();
+        gameController = GameController.GetGameController();
     }
 
     void Update()
@@ -26,8 +29,35 @@ public class RayCaster : MonoBehaviour
     void HitHandler(RaycastHit hit)
     {
         GameObject rayReceiver = hit.collider.gameObject;
-        int i = ZToI(rayReceiver.transform.position.z);
-        int j = XToJ(rayReceiver.transform.position.x);
+            
+        switch (gameController.GetGameMode())
+        {
+            case GameController.GameMode.LineChoose:
+                {
+                    if (rayReceiver.tag == "Arrow")
+                        Destroy(rayReceiver);
+                    break;
+                }
+            case GameController.GameMode.FigureMoving:
+                {
+                    if (rayReceiver.tag == "Cell")
+                    {
+                        int iFrom = ZToI(gameController.GetCurrentPlayer().GetPosition.z);
+                        int jFrom = XToJ(gameController.GetCurrentPlayer().GetPosition.x);
+                        
+                        int iTo = ZToI(rayReceiver.transform.position.z);
+                        int jTo= XToJ(rayReceiver.transform.position.x);
+
+                        Debug.Log(gameController.IsMoveAvailable(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo)));
+                        //Debug.Log("Up: " + gameController.GetCell(iTo, jTo).Up
+                        //    + "| Right: " + gameController.GetCell(iTo, jTo).Right
+                        //    + "| Down: " + gameController.GetCell(iTo, jTo).Down
+                        //    + "| Left: " + gameController.GetCell(iTo, jTo).Left
+                        //    + "| i=" + iTo + " j=" + jTo);
+                    }
+                    break;
+                }
+        }
     }
 
     int ZToI(float z)
