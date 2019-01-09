@@ -340,6 +340,93 @@ public class GameController : MonoBehaviour
         }
         return false;
     }
+    public List<Cell> GetVisitedCells(Vector2Int From, Vector2Int To)
+    {
+        if (From.x < 0 || From.y < 0 || To.x < 0 || To.y < 0 || From.x > 6 || From.y > 6 || To.x > 6 || To.y > 6)
+            return new List<Cell>();
+
+        if (From == To)
+            return new List<Cell>() { cells[From.x, From.y] };
+
+        Queue<Point> queue = new Queue<Point>();
+
+        List<Point> visitedCells = new List<Point>();
+
+        queue.Enqueue(new Point(cells[From.x, From.y], From, null));
+
+        while (queue.Count != 0)
+        {
+            Point current = queue.Dequeue();
+            Vector2Int nextPosition = Vector2Int.zero;
+            Vector2Int currentPosition = current.GetCurrentPosition;
+
+            visitedCells.Add(current);
+
+            //---------------------------------------------UP
+            nextPosition = currentPosition + Vector2Int.left;
+            if (current.GetCell.Up && currentPosition.x > 0 && cells[nextPosition.x, nextPosition.y].Down)
+            {
+                if (nextPosition == To)
+                    return RestorePath(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+                else
+                if (!ContainsCell(visitedCells, cells[nextPosition.x, nextPosition.y]))
+                    queue.Enqueue(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+            }
+            //---------------------------------------------RIGHT
+            nextPosition = currentPosition + Vector2Int.up;
+            if (current.GetCell.Right && currentPosition.y < 6 && cells[nextPosition.x, nextPosition.y].Left)
+            {
+                if (nextPosition == To)
+                    return RestorePath(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+                else
+                if (!ContainsCell(visitedCells, cells[nextPosition.x, nextPosition.y]))
+                    queue.Enqueue(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+            }
+            //---------------------------------------------DOWN
+            nextPosition = currentPosition + Vector2Int.right;
+            if (current.GetCell.Down && currentPosition.x < 6 && cells[nextPosition.x, nextPosition.y].Up)
+            {
+                if (nextPosition == To)
+                    return RestorePath(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+                else
+                if (!ContainsCell(visitedCells, cells[nextPosition.x, nextPosition.y]))
+                    queue.Enqueue(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+            }
+            //---------------------------------------------LEFT
+            nextPosition = currentPosition + Vector2Int.down;
+            if (current.GetCell.Left && currentPosition.y > 0 && cells[nextPosition.x, nextPosition.y].Right)
+            {
+                if (nextPosition == To)
+                    return RestorePath(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+                else
+                if (!ContainsCell(visitedCells, cells[nextPosition.x, nextPosition.y]))
+                    queue.Enqueue(new Point(cells[nextPosition.x, nextPosition.y], nextPosition, current));
+            }
+        }
+        return new List<Cell>();
+    }
+    private bool ContainsCell(List<Point> list, Cell cell)
+    {
+        foreach (Point p in list)
+        {
+            if (p.GetCell.Equals(cell))
+                return true;
+        }
+        return false;
+    }
+    private List<Cell> RestorePath(Point reachedPoint)
+    {
+        List<Cell> result = new List<Cell>() { reachedPoint.GetCell };
+
+        Point temp = reachedPoint;
+
+        while ((temp = temp.GetPreviousPoint) != null)
+        {
+            result.Insert(0, temp.GetCell);
+        }
+
+        return result;
+    }
 
     public void ExitGame()
     {
@@ -512,5 +599,32 @@ public class Chip
     public GameObject GetGameObject()
     {
         return gameObject;
+    }
+}
+
+public class Point
+{
+    private Vector2Int current;
+    private Point previous;
+    private Cell cell;
+
+    public Point(Cell cell, Vector2Int curr, Point prev)
+    {
+        this.cell = cell;
+        current = curr;
+        previous = prev;
+    }
+
+    public Cell GetCell
+    {
+        get { return cell; }
+    }
+    public Vector2Int GetCurrentPosition
+    {
+        get { return current; }
+    }
+    public Point GetPreviousPoint
+    {
+        get { return previous; }
     }
 }

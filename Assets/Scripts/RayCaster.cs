@@ -48,13 +48,24 @@ public class RayCaster : MonoBehaviour
                         int iTo = ZToI(rayReceiver.transform.position.z);
                         int jTo= XToJ(rayReceiver.transform.position.x);
 
+                        float upSize = 0.2f;
+                        GameObject[] cells = GameObject.FindGameObjectsWithTag("Cell");
+                        for (int i = 0; i < cells.Length; i++)
+                        {
+                            cells[i].transform.position.y = 0.2f;
+                        }
                         Debug.Log(gameController.IsMoveAvailable(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo)));
+                        List<Cell> list = gameController.GetVisitedCells(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo));
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            list[i].GetGameObject().transform.Translate(new Vector3(0, upSize, 0));
+                        }
                         //Debug.Log("Up: " + gameController.GetCell(iTo, jTo).Up
                         //    + "| Right: " + gameController.GetCell(iTo, jTo).Right
                         //    + "| Down: " + gameController.GetCell(iTo, jTo).Down
                         //    + "| Left: " + gameController.GetCell(iTo, jTo).Left
                         //    + "| i=" + iTo + " j=" + jTo);
-                    }
+                        }
                     break;
                 }
         }
