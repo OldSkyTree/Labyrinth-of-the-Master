@@ -7,21 +7,25 @@ public class RayCaster : MonoBehaviour
     private Camera currentCamera;
 
     private GameController gameController;
+    private CellsHolder cellsHolder;
     
     void Start()
     {
         currentCamera = GetComponent<Camera>();
         gameController = GameController.GetGameController();
+        cellsHolder = CellsHolder.GetCellsHolder();
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonUp(0))
-        {
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+        Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit, 100))
+        if (Physics.Raycast(ray, out hit, 100))
+        {
+            if (hit.collider.gameObject.tag == "Cell")
+                cellsHolder.ShowPath(hit.collider.gameObject);
+            if (Input.GetMouseButtonUp(0))
                 HitHandler(hit);
         }
     }
@@ -35,48 +39,30 @@ public class RayCaster : MonoBehaviour
             case GameController.GameMode.LineChoose:
                 {
                     if (rayReceiver.tag == "Arrow")
-                        Destroy(rayReceiver);
+                        rayReceiver.GetComponent<CellsMover>().Move();
                     break;
                 }
             case GameController.GameMode.FigureMoving:
                 {
-                    if (rayReceiver.tag == "Cell")
-                    {
-                        int iFrom = ZToI(gameController.GetCurrentPlayer().GetPosition.z);
-                        int jFrom = XToJ(gameController.GetCurrentPlayer().GetPosition.x);
+                    //if (rayReceiver.tag == "Cell")
+                    //{
+                    //    int iFrom = GameController.ZToI(gameController.GetCurrentPlayer().GetPosition.z);
+                    //    int jFrom = GameController.XToJ(gameController.GetCurrentPlayer().GetPosition.x);
                         
-                        int iTo = ZToI(rayReceiver.transform.position.z);
-                        int jTo= XToJ(rayReceiver.transform.position.x);
-
-                        float upSize = 0.2f;
-                        GameObject[] cells = GameObject.FindGameObjectsWithTag("Cell");
-                        for (int i = 0; i < cells.Length; i++)
-                        {
-                            cells[i].transform.position.y = 0.2f;
-                        }
-                        Debug.Log(gameController.IsMoveAvailable(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo)));
-                        List<Cell> list = gameController.GetVisitedCells(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo));
-                        for (int i = 0; i < list.Count; i++)
-                        {
-                            list[i].GetGameObject().transform.Translate(new Vector3(0, upSize, 0));
-                        }
-                        //Debug.Log("Up: " + gameController.GetCell(iTo, jTo).Up
-                        //    + "| Right: " + gameController.GetCell(iTo, jTo).Right
-                        //    + "| Down: " + gameController.GetCell(iTo, jTo).Down
-                        //    + "| Left: " + gameController.GetCell(iTo, jTo).Left
-                        //    + "| i=" + iTo + " j=" + jTo);
-                        }
+                    //    int iTo = GameController.ZToI(rayReceiver.transform.position.z);
+                    //    int jTo= GameController.XToJ(rayReceiver.transform.position.x);
+                        
+                    //    List<Cell> list = cellsHolder.GetVisitedCells(new Vector2Int(iFrom, jFrom), new Vector2Int(iTo, jTo));
+                    //    if (!cellsHolder.IsUp)
+                    //        cellsHolder.LiftCells(list);
+                    //    else
+                    //    {
+                    //        cellsHolder.ResetLift();
+                    //        cellsHolder.LiftCells(list);
+                    //    }
+                    //}
                     break;
                 }
         }
-    }
-
-    int ZToI(float z)
-    {
-        return 3 - Mathf.RoundToInt(z / 2.05f);
-    }
-    int XToJ(float x)
-    {
-        return Mathf.RoundToInt(x / 2.05f) + 3;
     }
 }
